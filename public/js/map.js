@@ -3,7 +3,8 @@ const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v11',
     zoom: 9,
-    center: [-71.157895, 42.707741]
+    // center: [-71.157895, 42.707741]
+    center: [-41.50647531841017, -17.866241785490757]
 });
 
 // Fetch stores from API
@@ -12,7 +13,7 @@ async function getStores() {
     // const data = await res.json();
     try {
         const res = await axios.get('/api/v1/stores');
-        
+
         const stores = res.data.data.map(store => {
             return {
                 type: 'Feature',
@@ -26,7 +27,7 @@ async function getStores() {
                 }
             }
         });
-        
+
         loadMap(stores);
     } catch (err) {
         console.error(err);
@@ -34,7 +35,7 @@ async function getStores() {
     }
 }
 
-// Load mapp with stores
+// Load map with stores
 function loadMap(stores) {
     map.on('load', function () {
         map.addSource('point', {
@@ -57,7 +58,31 @@ function loadMap(stores) {
                 'text-anchor': 'top'
             }
         });
-    });    
+    });
 }
 
 getStores();
+
+let marks = []
+
+// Add a new mark after clicking on map
+map.on('click', e => {
+	const mark = {
+		'type': 'Feature',
+		'geometry': {
+			'type': 'Point',
+			'coordinates': [e.lngLat.lng, e.lngLat.lat]
+		},
+		'properties': {
+			'storeId': `mark-${marks.length + 1}`,
+			'icon': 'shop'
+		}
+	};
+
+	marks.unshift(mark);
+
+        map.getSource('point').setData({
+		'type': 'FeatureCollection',
+		'features': marks
+	});
+});
